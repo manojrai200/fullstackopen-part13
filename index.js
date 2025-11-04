@@ -1,11 +1,20 @@
-require("dotenv").config();
-const { Sequelize, Model, DataTypes, QueryTypes } = require("sequelize");
+require('dotenv').config()
+
+const { Sequelize, Model, DataTypes } = require('sequelize')
+const express = require('express')
+const app = express()
+
+app.use(express.json())
 
 const sequelize = new Sequelize(process.env.DATABASE_URL, {
   dialectOptions: {
-    ssl: { require: true, rejectUnauthorized: false },
+    ssl: {
+      require: true,
+      rejectUnauthorized: false
+    }
   },
 });
+
 
 class Blog extends Model {}
 Blog.init(
@@ -36,17 +45,34 @@ Blog.init(
   }
 );
 
-const main = async () => {
-  try {
-    await sequelize.authenticate();
-    const blogs = await sequelize.query("SELECT * FROM blogs", { type: QueryTypes.SELECT })
-    blogs.forEach((blog) => {
-      console.log(`${blog.author}: '${blog.title}', ${blog.likes} likes`);
-    });
-    await sequelize.close();
-  } catch (error) {
-    console.log('Unable to connect to the database:', error);
-  }
-};
+Blog.sync()
 
-main();
+
+app.get('/api/blogs', async (req, res) => {
+
+  const blogs = await Blog.findAll()
+  console.log(JSON.stringify(blogs, null, 2))
+  res.json(blogs)
+})
+
+app.post("/api/blogs", async (req, res) => {
+  console.log(req.body);
+  const blog = await Blog.create(req.body);
+  res.json(blog);
+});
+
+app.delete("/api/blogs/:id", async (req, res) => {
+  const blog = await Blog.findByPk(req.params.id);
+  if (blog) {
+    await blog.destroy()
+    console.log(blog)
+    res.json(blog)
+  } else {
+    res.status(404).end();
+  }
+});
+
+const PORT = process.env.PORT || 3001
+app.listen(PORT, () => {
+  console.log(`Server running on port ${PORT}`)
+})
