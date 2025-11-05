@@ -1,25 +1,28 @@
-const express = require('express')
-const app = express()
-const { PORT } = require('./utils/config')
-const { connectToDatabase } = require('./utils/db')
+const express = require("express");
+const app = express();
 
-const blogsRouter = require('./controllers/blogs')
-const usersRouter = require('./controllers/users')
-const middleware = require("./utils/middleware");
+const { PORT } = require("./utils/config");
+const { connectToDatabase } = require("./utils/db.js");
+const { errorHandler, unknownEndpoint } = require("./utils/middleware.js");
 
-app.use(express.json())
+const blogsRouter = require("./controllers/blogs");
+const usersRouter = require("./controllers/users.js")
+const loginRouter = require("./controllers/login.js")
 
-app.use('/api/blogs', blogsRouter)
-app.use('/api/users', usersRouter)
+app.use(express.json());
 
-app.use(middleware.unknownEndpoint);
-app.use(middleware.errorHandler);
+app.use("/api/blogs", blogsRouter);
+app.use("/api/users", usersRouter);
+app.use("/api/login", loginRouter);
+
+app.use(unknownEndpoint);
+app.use(errorHandler);
 
 const start = async () => {
-  await connectToDatabase()
+  await connectToDatabase();
   app.listen(PORT, () => {
-    console.log(`Server running on port ${PORT}`)
-  })
-}
+    console.log(`Server running on port ${PORT}`);
+  });
+};
 
-start()
+start();

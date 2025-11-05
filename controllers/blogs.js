@@ -12,7 +12,6 @@ router.get('/test', async (req, res) => {
   throw new Error('Oops!')
 })
 
-
 router.post("/", async (req, res) => {
   console.log(req.body);
   const blog = await Blog.create(req.body);
