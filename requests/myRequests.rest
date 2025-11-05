@@ -14,3 +14,32 @@ Content-Type: application/json
 {
     "likes": false
 }
+
+###
+POST http://localhost:3001/api/users
+Content-Type: application/json
+
+{
+    "username": "user1",
+    "name": "User One"
+}
+
+
+###
+PUT http://localhost:3001/api/users/user1
+Content-Type: application/json
+
+{
+    "username": "userOne"
+}
+
+###
+GET http://localhost:3001/api/users
+Content-Type: application/json
+
+# {
+#     "username": "userOne"
+# }
+
+
+
