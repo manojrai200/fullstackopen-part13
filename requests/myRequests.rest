@@ -6,3 +6,11 @@ Content-Type: application/json
 {
     "likes": 25 
 }
+
+### 
+PUT  http://localhost:3001/api/blogs/3
+Content-Type: application/json
+
+{
+    "likes": false
+}
