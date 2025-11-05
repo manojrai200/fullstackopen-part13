@@ -1,42 +1,122 @@
-const router = require('express').Router()
-const { Blog } = require('../models')
+const router = require("express").Router();
+const jwt = require("jsonwebtoken");
+const { SECRET } = require("../utils/config");
+const { Op } = require("sequelize");
 
-router.get('/', async (req, res) => {
-  const blogs = await Blog.findAll()
-  console.log(JSON.stringify(blogs, null, 2))
-  res.json(blogs)
-})
+const { Blog, User } = require("../models");
 
-// Works fine without express-async-errors in Express 5
-router.get('/test', async (req, res) => {
-  throw new Error('Oops!')
-})
+const blogFinder = async (req, res, next) => {
+  try {
+    req.blog = await Blog.findByPk(req.params.id);
+    next();
+  } catch (error) {
+    next(error);
+  }
+};
 
-router.post("/", async (req, res) => {
-  console.log(req.body);
-  const blog = await Blog.create(req.body);
-  res.json(blog);
+router.get("/", async (req, res, next) => {
+  try {
+    const where = {};
+
+    if (req.query.search) {
+      where[Op.or] = [
+        {
+          title: {
+            [Op.iLike]: `%${req.query.search}%`,
+          },
+        },
+        {
+          author: {
+            [Op.iLike]: `%${req.query.search}%`,
+          },
+        },
+      ];
+    }
+
+    const blogs = await Blog.findAll({
+      attributes: { exclude: ["userId"] },
+      include: {
+        model: User,
+        attributes: ["name", "username"],
+      },
+      where,
+      order: [["likes", "DESC"]],
+    });
+    res.json(blogs);
+  } catch (error) {
+    next(error);
+  }
 });
 
-router.delete("/:id", async (req, res) => {
-  const blog = await Blog.findByPk(req.params.id);
-  if (blog) {
-    await blog.destroy()
-    console.log(blog)
-    res.json(blog)
+router.get("/:id", blogFinder, async (req, res, next) => {
+  try {
+    if (req.blog) {
+      res.json(req.blog);
+    } else {
+      res.status(404).end();
+    }
+  } catch (error) {
+    next(error);
+  }
+});
+
+const tokenExtractor = (req, res, next) => {
+  const authorization = req.get("authorization");
+  if (authorization && authorization.toLowerCase().startsWith("bearer ")) {
+    try {
+      req.decodedToken = jwt.verify(authorization.substring(7), SECRET);
+    } catch {
+      return res.status(401).json({ error: "token invalid" });
+    }
   } else {
-    res.status(404).end();
+    return res.status(401).json({ error: "token missing" });
+  }
+  next();
+};
+
+router.post("/", tokenExtractor, async (req, res, next) => {
+  try {
+    const user = await User.findByPk(req.decodedToken.id);
+    const blog = await Blog.create({
+      ...req.body,
+      userId: user.id,
+      date: new Date(),
+    });
+    return res.json(blog);
+  } catch (error) {
+    next(error);
   }
 });
 
-router.put('/:id', async (req, res) => {
-  const blog = await Blog.findByPk(req.params.id)
-  if (!blog) {
-    return res.status(404).json({ error: 'blog not found' })
+router.delete("/:id", tokenExtractor, blogFinder, async (req, res, next) => {
+  try {
+    if (!req.blog) {
+      return res.status(404).json({ error: "blog is not found" });
+    }
+    if (req.blog.userId !== req.decodedToken.id) {
+      return res
+        .status(401)
+        .json({ error: "unauthorized: you cannot delete other blogs" });
+    }
+    await req.blog.destroy();
+    res.status(204).end();
+  } catch (error) {
+    next(error);
   }
-  blog.likes = req.body.likes
-  await blog.save()
-  res.json(blog)
-})
+});
 
-module.exports = router
+router.put("/:id", blogFinder, async (req, res, next) => {
+  try {
+    if (req.blog) {
+      req.blog.likes = req.body.likes;
+      await req.blog.save();
+      res.json(req.blog);
+    } else {
+      res.status(404).end();
+    }
+  } catch (error) {
+    next(error);
+  }
+});
+
+module.exports = router;

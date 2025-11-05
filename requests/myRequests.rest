@@ -46,7 +46,19 @@ Content-Type: application/json
     "password": "secret"
 }
 
+###
+GET http://localhost:3001/api/blogs
+Content-Type: application/json
 
+###
+POST http://localhost:3001/api/blogs
+Content-Type: application/json
+Authorization: bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VybmFtZSI6InRlc3RAZW1haWwuY29tIiwiaWQiOjgsImlhdCI6MTc2MjM3MzI5MX0.hy735fVNRd6SHhR1QCTNH80tCW9Iy7hnTYxl8AaNcJI
 
+{
+    "author": "tester",
+    "title": "test",
+    "url": "testing.com"
+}
 
 
