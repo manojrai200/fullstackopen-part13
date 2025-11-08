@@ -31,15 +31,17 @@ router.get("/:id", async (req, res, next) => {
       attributes: ["name", "username"],
       include: {
         model: Blog,
-        as: 'read_blog',
+        as: "readings",
         attributes: ["id", "url", "title", "author", "likes", "year"],
         through: {
-          attributes: [] },
+          as: "read_blog",
+          attributes: ["id", "read"],
+        },
       },
     });
 
     if (!user) {
-      return res.status(404).json({ error: "User not found" });
+      return res.status(404).json({ error: "user not found" });
     }
 
     res.json(user);
