@@ -9,7 +9,6 @@ module.exports = {
         min: 1991,
         max: new Date().getFullYear(),
       },
-      default: new Date().now()
     }); 
   },
   down: async ({ context: queryInterface }) => {
