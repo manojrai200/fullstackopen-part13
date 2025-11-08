@@ -27,12 +27,27 @@ router.post("/", async (req, res, next) => {
 
 router.get("/:id", async (req, res, next) => {
   try {
-    const user = await User.findByPk(req.params.id);
-    if (user) {
-      res.json(user);
-    } else {
-      res.status(404).end();
+    const user = await User.findByPk(req.params.id, {
+      attributes: ["name", "username"],
+      include: {
+        model: Blog,
+        as: 'read_blog',
+        attributes: ["id", "url", "title", "author", "likes", "year"],
+        through: { attributes: [] },
+      },
+    });
+
+    if (!user) {
+      return res.status(404).json({ error: "User not found" });
     }
+
+    const formatted = {
+      name: user.name,
+      username: user.username,
+      readings: user.readings || [],
+    };
+
+    res.json(formatted);
   } catch (error) {
     next(error);
   }

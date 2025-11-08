@@ -22,16 +22,15 @@ ReadingList.init(
     },
     read: {
       type: DataTypes.BOOLEAN,
-      defaultValue: false,
       allowNull: false,
+      defaultValue: false,
     },
   },
   {
     sequelize,
     underscored: true,
     timestamps: false,
-    modelName: "readingList",
-    tableName: "reading_lists",
+    modelName: "reading_lists",
   }
 );
 
