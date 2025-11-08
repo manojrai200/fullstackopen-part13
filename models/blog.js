@@ -31,16 +31,21 @@ Blog.init(
       validate: {
         min: {
           args: 1991,
-          msg: 'Year must be at least 1991'
+          msg: "Year must be at least 1991",
         },
         max: {
           args: new Date().getFullYear(),
-          msg: `Year must not be greater than ${new Date().getFullYear()}`
+          msg: `Year must not be greater than ${new Date().getFullYear()}`,
         },
         isInt: {
-          msg: 'Year must be an integer'
-        }
-      }
+          msg: "Year must be an integer",
+        },
+      },
+    },
+    userId: {
+      type: DataTypes.INTEGER,
+      allowNull: false,
+      references: { model: "users", key: "id" },
     },
   },
   {

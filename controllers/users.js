@@ -1,6 +1,6 @@
 const router = require("express").Router();
 
-const { User, Blog } = require("../models");
+const { User, Blog, ReadingList } = require("../models");
 
 router.get("/", async (req, res, next) => {
   try {
@@ -33,7 +33,8 @@ router.get("/:id", async (req, res, next) => {
         model: Blog,
         as: 'read_blog',
         attributes: ["id", "url", "title", "author", "likes", "year"],
-        through: { attributes: [] },
+        through: {
+          attributes: [] },
       },
     });
 
@@ -41,13 +42,7 @@ router.get("/:id", async (req, res, next) => {
       return res.status(404).json({ error: "User not found" });
     }
 
-    const formatted = {
-      name: user.name,
-      username: user.username,
-      readings: user.readings || [],
-    };
-
-    res.json(formatted);
+    res.json(user);
   } catch (error) {
     next(error);
   }

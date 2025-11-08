@@ -77,6 +77,10 @@ const tokenExtractor = (req, res, next) => {
 router.post("/", tokenExtractor, async (req, res, next) => {
   try {
     const user = await User.findByPk(req.decodedToken.id);
+    // Validate user exists
+    if (!user) {
+      return res.status(404).json({ error: "User not found" });
+    }
     const blog = await Blog.create({
       ...req.body,
       userId: user.id,
@@ -90,10 +94,11 @@ router.post("/", tokenExtractor, async (req, res, next) => {
 
 router.delete("/:id", tokenExtractor, blogFinder, async (req, res, next) => {
   try {
-    if (!req.blog) {
+    const blog = req.blog;
+    if (!blog) {
       return res.status(404).json({ error: "blog is not found" });
     }
-    if (req.blog.userId !== req.decodedToken.id) {
+    if (blog.userId !== req.decodedToken.id) {
       return res
         .status(401)
         .json({ error: "unauthorized: you cannot delete other blogs" });
@@ -105,14 +110,19 @@ router.delete("/:id", tokenExtractor, blogFinder, async (req, res, next) => {
   }
 });
 
-router.put("/:id", blogFinder, async (req, res, next) => {
+router.put("/:id", tokenExtractor, blogFinder, async (req, res, next) => {
   try {
     if (req.blog) {
+      if (req.blog.userId !== req.decodedToken.id) {
+        return res.status(401).json({
+          error: "unauthorized: you can only edit your own blogs",
+        });
+      }
       req.blog.likes = req.body.likes;
       await req.blog.save();
       res.json(req.blog);
     } else {
-      res.status(404).end();
+      res.status(404).json({ error: "Blog not found" });
     }
   } catch (error) {
     next(error);
