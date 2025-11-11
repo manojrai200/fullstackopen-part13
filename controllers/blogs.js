@@ -70,8 +70,8 @@ router.post("/", tokenExtractor, async (req, res, next) => {
 router.delete("/:id", tokenExtractor, async (req, res, next) => {
   try {
     const blog = await Blog.findByPk(req.params.id)
-    console.log("Decoded token:", req.decodedToken.id);
-    console.log("Blog found:", blog);
+    // console.log("Decoded token:", req.decodedToken.id);
+    // console.log("Blog found:", blog);
     if (!blog) {
       return res.status(404).json({ error: "blog is not found" });
     }
