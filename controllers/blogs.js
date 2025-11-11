@@ -1,6 +1,4 @@
 const router = require("express").Router();
-const jwt = require("jsonwebtoken");
-const { SECRET } = require("../utils/config");
 const { Op } = require("sequelize");
 
 const { Blog, User } = require("../models");
@@ -69,9 +67,11 @@ router.post("/", tokenExtractor, async (req, res, next) => {
   }
 });
 
-router.delete("/:id", tokenExtractor, blogFinder, async (req, res, next) => {
+router.delete("/:id", tokenExtractor, async (req, res, next) => {
   try {
-    const blog = req.blog;
+    const blog = await Blog.findByPk(req.params.id)
+    console.log("Decoded token:", req.decodedToken.id);
+    console.log("Blog found:", blog);
     if (!blog) {
       return res.status(404).json({ error: "blog is not found" });
     }
@@ -80,7 +80,7 @@ router.delete("/:id", tokenExtractor, blogFinder, async (req, res, next) => {
         .status(401)
         .json({ error: "unauthorized: you cannot delete other blogs" });
     }
-    await req.blog.destroy();
+    await blog.destroy();
     res.status(204).end();
   } catch (error) {
     next(error);
