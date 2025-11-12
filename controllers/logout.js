@@ -1,9 +1,9 @@
 const router = require("express").Router();
 const { Session } = require("../models");
 
-router.delete("/", async (request, response, next) => {
+router.delete("/", async (req, res, next) => {
   try {
-    const authorization = request.get("authorization");
+    const authorization = req.get("authorization");
     if (authorization && authorization.toLowerCase().startsWith("bearer ")) {
       const token = authorization.substring(7);
       
@@ -14,12 +14,12 @@ router.delete("/", async (request, response, next) => {
       });
 
       if (deleted > 0) {
-        response.status(204).end();
+        res.status(204).end();
       } else {
-        response.status(404).json({ error: "session not found" });
+        res.status(404).json({ error: "session not found" });
       }
     } else {
-      response.status(401).json({ error: "token missing" });
+      res.status(401).json({ error: "token missing" });
     }
   } catch (error) {
     next(error);
